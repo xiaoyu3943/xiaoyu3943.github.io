@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= config.title %></title>
+  <link rel="stylesheet" href="<%= url_for('/css/style.css') %>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="<%= url_for('/') %>" class="site-title"><%= config.title %></a>
+      <nav class="site-nav">
+        <a href="<%= url_for('/') %>">首页</a>
+        <a href="<%= url_for('/archives') %>">归档</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="container">
+      <%- body %>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <%= date(new Date(), 'YYYY') %> <%= config.author %></p>
+    </div>
+  </footer>
+</body>
+</html>

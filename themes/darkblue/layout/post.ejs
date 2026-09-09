@@ -1,0 +1,37 @@
+<article class="post-full">
+  <header class="post-header">
+    <h1 class="post-title"><%= page.title %></h1>
+    <div class="post-meta">
+      <span class="post-date">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M3.5 0a.5.5 0 01.5.5V1h8V.5a.5.5 0 011 0V1h1a2 2 0 012 2v11a2 2 0 01-2 2H2a2 2 0 01-2-2V3a2 2 0 012-2h1V.5a.5.5 0 01.5-.5z"/>
+        </svg>
+        <%= date(page.date, 'YYYY-MM-DD') %>
+      </span>
+      <% if (page.categories && page.categories.length) { %>
+        <span class="post-categories">
+          <% page.categories.each(function(cat){ %>
+            <a href="<%= url_for(cat.path) %>"><%= cat.name %></a>
+          <% }); %>
+        </span>
+      <% } %>
+    </div>
+  </header>
+
+  <div class="post-content">
+    <%- page.content %>
+  </div>
+
+  <% if (page.tags && page.tags.length) { %>
+    <div class="post-tags">
+      <% page.tags.each(function(tag){ %>
+        <a href="<%= url_for(tag.path) %>" class="tag">#<%= tag.name %></a>
+      <% }); %>
+    </div>
+  <% } %>
+</article>
+
+<!-- 返回首页 -->
+<div class="back-home">
+  <a href="<%= url_for('/') %>">&laquo; 返回首页</a>
+</div>

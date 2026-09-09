@@ -1,0 +1,19 @@
+# 主题配置
+navbar:
+  title: DarkBlue
+
+# 首页设置
+index:
+  per_page: 10                      # 每页显示条数
+  order_by: -date                   # 排序方式，-date表示按日期降序
+  show_excerpt: true                # 是否显示文章摘要
+
+# 颜色主题
+colors:
+  bg: '#0d1117'                     # 深黑背景
+  card_bg: '#161b22'                # 卡片背景
+  primary: '#58a6ff'                # 蓝色主色调
+  text: '#c9d1d9'                   # 浅灰文字
+  text_secondary: '#8b949e'         # 次要文字  
+  border: '#30363d'                 # 边框颜色
+  hover: '#1f6feb'                  # 悬停蓝色

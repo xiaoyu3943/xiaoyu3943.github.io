@@ -1,0 +1,56 @@
+<%
+// 将当前页文章按主分类分组（纯 JS 实现）
+var grouped = {};
+page.posts.each(function(post) {
+  var catName = '未分类';
+  if (post.categories && post.categories.length) {
+    catName = post.categories.first().name;
+  }
+  if (!grouped[catName]) {
+    grouped[catName] = [];
+  }
+  grouped[catName].push(post);
+});
+%>
+
+<% for (var catName in grouped) {
+  var posts = grouped[catName];
+  // 取该组第一篇的分类 path 作为分类链接
+  var catPath = '';
+  if (posts[0].categories && posts[0].categories.length) {
+    catPath = posts[0].categories.first().path;
+  }
+%>
+  <section class="category-group">
+    <h2 class="category-title">
+      <% if (catPath) { %>
+        <a href="<%= url_for(catPath) %>"><%= catName %></a>
+      <% } else { %>
+        <%= catName %>
+      <% } %>
+    </h2>
+    <div class="post-list">
+      <% for (var i = 0; i < posts.length; i++) { %>
+        <article class="post-item">
+          <span class="post-date"><%= date(posts[i].date, 'YYYY-MM-DD') %></span>
+          <a href="<%= url_for(posts[i].path) %>" class="post-title-link">
+            <%= posts[i].title %>
+          </a>
+        </article>
+      <% } %>
+    </div>
+  </section>
+<% } %>
+
+<!-- 分页导航 -->
+<% if (page.total > 1) { %>
+  <nav class="pagination">
+    <% if (page.prev) { %>
+      <a href="<%= url_for(page.prev_link) %>" class="prev">&laquo; 上一页</a>
+    <% } %>
+    <span class="page-number"><%= page.current %> / <%= page.total %></span>
+    <% if (page.next) { %>
+      <a href="<%= url_for(page.next_link) %>" class="next">下一页 &raquo;</a>
+    <% } %>
+  </nav>
+<% } %>
