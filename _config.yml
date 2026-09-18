@@ -90,6 +90,7 @@ pagination_dir: page
 # Include / Exclude file(s)
 ## include:/exclude: options only apply to the 'source/' folder
 include:
+  - .nojekyll
 exclude:
 ignore:
 
@@ -101,4 +102,8 @@ theme: darkblue
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: ''
+  type: git
+  repo: https://github.com/xiaoyu3943/xiaoyu3943.github.io.git
+  branch: master
+  message: 'deploy: 博客更新 {{ now("yyyy-MM-dd HH:mm:ss") }}'
+  ignore_hidden: false
