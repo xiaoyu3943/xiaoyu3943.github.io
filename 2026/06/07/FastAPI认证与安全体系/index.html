@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的博客</title>
+  <link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-title">我的博客</a>
+      <nav class="site-nav">
+        <a href="/">首页</a>
+        <a href="/archives">归档</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="container">
+      <article class="post-full">
+  <header class="post-header">
+    <h1 class="post-title">FastAPI 认证与安全体系</h1>
+    <div class="post-meta">
+      <span class="post-date">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M3.5 0a.5.5 0 01.5.5V1h8V.5a.5.5 0 011 0V1h1a2 2 0 012 2v11a2 2 0 01-2 2H2a2 2 0 01-2-2V3a2 2 0 012-2h1V.5a.5.5 0 01.5-.5z"/>
+        </svg>
+        2026-06-07
+      </span>
+      
+        <span class="post-categories">
+          
+            <a href="/categories/Python/">Python</a>
+          
+        </span>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <h2 id="第一部分：JWT-认证与-bcrypt-密码安全"><a href="#第一部分：JWT-认证与-bcrypt-密码安全" class="headerlink" title="第一部分：JWT 认证与 bcrypt 密码安全"></a>第一部分：JWT 认证与 bcrypt 密码安全</h2><h3 id="一、核心组件"><a href="#一、核心组件" class="headerlink" title="一、核心组件"></a>一、核心组件</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> jose <span class="keyword">import</span> jwt                       <span class="comment"># JWT 编码/解码</span></span><br><span class="line"><span class="keyword">from</span> passlib.context <span class="keyword">import</span> CryptContext    <span class="comment"># 密码哈希</span></span><br><span class="line"><span class="keyword">from</span> app.config <span class="keyword">import</span> get_settings</span><br><span class="line"></span><br><span class="line">settings = get_settings()</span><br><span class="line">pwd_context = CryptContext(schemes=[<span class="string">&quot;bcrypt&quot;</span>], deprecated=<span class="string">&quot;auto&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>python-jose</code></td>
+<td>JWT（JSON Web Token）的签发和验证</td>
+</tr>
+<tr>
+<td><code>passlib</code> + <code>bcrypt</code></td>
+<td>密码哈希和验证明文</td>
+</tr>
+<tr>
+<td><code>CryptContext</code></td>
+<td>passlib 的上下文管理器，统一管理多种哈希方案</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="二、密码哈希（bcrypt）"><a href="#二、密码哈希（bcrypt）" class="headerlink" title="二、密码哈希（bcrypt）"></a>二、密码哈希（bcrypt）</h3><h4 id="2-1-哈希与验证"><a href="#2-1-哈希与验证" class="headerlink" title="2.1 哈希与验证"></a>2.1 哈希与验证</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">hash_password</span>(<span class="params">password: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;对明文密码进行 bcrypt 哈希&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> pwd_context.<span class="built_in">hash</span>(password)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">verify_password</span>(<span class="params">plain: <span class="built_in">str</span>, hashed: <span class="built_in">str</span></span>) -&gt; <span class="built_in">bool</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;验证明文密码是否匹配哈希值&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> pwd_context.verify(plain, hashed)</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-2-bcrypt-为什么安全？"><a href="#2-2-bcrypt-为什么安全？" class="headerlink" title="2.2 bcrypt 为什么安全？"></a>2.2 bcrypt 为什么安全？</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 同样的密码，每次哈希结果都不同（因为内嵌了随机 salt）</span></span><br><span class="line">hash_password(<span class="string">&quot;mypassword&quot;</span>)  <span class="comment"># $2b$12$abc...salt1...hash1</span></span><br><span class="line">hash_password(<span class="string">&quot;mypassword&quot;</span>)  <span class="comment"># $2b$12$xyz...salt2...hash2  ← 完全不同！</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 但验证时都能匹配</span></span><br><span class="line">verify_password(<span class="string">&quot;mypassword&quot;</span>, hash1)  <span class="comment"># True</span></span><br><span class="line">verify_password(<span class="string">&quot;mypassword&quot;</span>, hash2)  <span class="comment"># True</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-bcrypt-哈希串结构"><a href="#2-3-bcrypt-哈希串结构" class="headerlink" title="2.3 bcrypt 哈希串结构"></a>2.3 bcrypt 哈希串结构</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$2b$12$LJ3m4ys3GZ0bq8vY5XtQrOK7Xm1kpVh9yRfTn2wCsDlFj8eWxK6ua</span><br><span class="line">│  │  │                                            │</span><br><span class="line">│  │  │                                            └── 哈希值 (31 字符)</span><br><span class="line">│  │  └── Salt (22 字符)</span><br><span class="line">│  └── Cost Factor (2^12 = 4096 轮迭代)</span><br><span class="line">└── 算法标识 (2b = bcrypt)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>组成部分</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>$2b$</code></td>
+<td>算法版本标识</td>
+</tr>
+<tr>
+<td><code>$12$</code></td>
+<td>计算轮数 &#x3D; 2^12 &#x3D; 4096 次迭代（越高越慢，越安全）</td>
+</tr>
+<tr>
+<td>salt</td>
+<td>22 字符的随机盐，每次自动生成</td>
+</tr>
+<tr>
+<td>hash</td>
+<td>最终的哈希值</td>
+</tr>
+</tbody></table>
+<h4 id="2-4-bcrypt-的三重防护"><a href="#2-4-bcrypt-的三重防护" class="headerlink" title="2.4 bcrypt 的三重防护"></a>2.4 bcrypt 的三重防护</h4><table>
+<thead>
+<tr>
+<th>防护</th>
+<th>原理</th>
+<th>防御的攻击</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>盐 (Salt)</strong></td>
+<td>每个密码独立生成随机盐</td>
+<td>彩虹表攻击（预计算哈希→明文的表）</td>
+</tr>
+<tr>
+<td><strong>多轮迭代</strong></td>
+<td>4096 次迭代，故意让计算变慢</td>
+<td>暴力破解（试一个密码要 0.3 秒）</td>
+</tr>
+<tr>
+<td><strong>不可逆</strong></td>
+<td>只能 hash → verify，不能反向</td>
+<td>数据库泄露也无法恢复明文</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="三、JWT-令牌签发"><a href="#三、JWT-令牌签发" class="headerlink" title="三、JWT 令牌签发"></a>三、JWT 令牌签发</h3><h4 id="3-1-Access-Token（短期）"><a href="#3-1-Access-Token（短期）" class="headerlink" title="3.1 Access Token（短期）"></a>3.1 Access Token（短期）</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">create_access_token</span>(<span class="params"></span></span><br><span class="line"><span class="params">    subject: <span class="built_in">str</span>,                        <span class="comment"># 通常是 user_id</span></span></span><br><span class="line"><span class="params">    extra_claims: <span class="built_in">dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>] | <span class="literal">None</span> = <span class="literal">None</span>,</span></span><br><span class="line"><span class="params"></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    now = datetime.now(timezone.utc)</span><br><span class="line">    expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)  <span class="comment"># 30分钟</span></span><br><span class="line">    claims = &#123;</span><br><span class="line">        <span class="string">&quot;sub&quot;</span>: subject,       <span class="comment"># 主题（Subject）— 用户标识</span></span><br><span class="line">        <span class="string">&quot;iat&quot;</span>: now,           <span class="comment"># 签发时间（Issued At）</span></span><br><span class="line">        <span class="string">&quot;exp&quot;</span>: expire,        <span class="comment"># 过期时间（Expiration）</span></span><br><span class="line">        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;access&quot;</span>,     <span class="comment"># 令牌类型 — 用于区分 access/refresh</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> extra_claims:</span><br><span class="line">        claims.update(extra_claims)</span><br><span class="line">    <span class="keyword">return</span> jwt.encode(claims, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-2-Refresh-Token（长期）"><a href="#3-2-Refresh-Token（长期）" class="headerlink" title="3.2 Refresh Token（长期）"></a>3.2 Refresh Token（长期）</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">create_refresh_token</span>(<span class="params">subject: <span class="built_in">str</span></span>) -&gt; <span class="built_in">str</span>:</span><br><span class="line">    now = datetime.now(timezone.utc)</span><br><span class="line">    expire = now + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)  <span class="comment"># 7天</span></span><br><span class="line">    claims = &#123;</span><br><span class="line">        <span class="string">&quot;sub&quot;</span>: subject,</span><br><span class="line">        <span class="string">&quot;iat&quot;</span>: now,</span><br><span class="line">        <span class="string">&quot;exp&quot;</span>: expire,</span><br><span class="line">        <span class="string">&quot;type&quot;</span>: <span class="string">&quot;refresh&quot;</span>,</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> jwt.encode(claims, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-3-JWT-标准声明（Registered-Claims）"><a href="#3-3-JWT-标准声明（Registered-Claims）" class="headerlink" title="3.3 JWT 标准声明（Registered Claims）"></a>3.3 JWT 标准声明（Registered Claims）</h4><table>
+<thead>
+<tr>
+<th>缩写</th>
+<th>全称</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sub</code></td>
+<td>Subject</td>
+<td>令牌主体（通常是 user_id）</td>
+</tr>
+<tr>
+<td><code>iat</code></td>
+<td>Issued At</td>
+<td>签发时间戳</td>
+</tr>
+<tr>
+<td><code>exp</code></td>
+<td>Expiration Time</td>
+<td>过期时间戳</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>（自定义）</td>
+<td>区分 access token 和 refresh token</td>
+</tr>
+<tr>
+<td><code>HS256</code></td>
+<td>HMAC-SHA256 签名算法（对称密钥）</td>
+<td></td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="四、JWT-解码与验证"><a href="#四、JWT-解码与验证" class="headerlink" title="四、JWT 解码与验证"></a>四、JWT 解码与验证</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">decode_token</span>(<span class="params">token: <span class="built_in">str</span></span>) -&gt; <span class="built_in">dict</span>[<span class="built_in">str</span>, <span class="type">Any</span>]:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;解码并验证 JWT，无效时抛出 JWTError&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">return</span> jwt.decode(</span><br><span class="line">        token,</span><br><span class="line">        settings.JWT_SECRET_KEY,</span><br><span class="line">        algorithms=[settings.JWT_ALGORITHM],</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<h4 id="自动验证的项"><a href="#自动验证的项" class="headerlink" title="自动验证的项"></a>自动验证的项</h4><table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>签名</strong></td>
+<td>验证 token 是否被篡改（用 <code>JWT_SECRET_KEY</code> 验签）</td>
+</tr>
+<tr>
+<td><strong>过期</strong></td>
+<td>验证 <code>exp</code> 是否已过</td>
+</tr>
+<tr>
+<td><strong>算法</strong></td>
+<td>验证签发算法是否匹配</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="五、JWT-双-Token-机制"><a href="#五、JWT-双-Token-机制" class="headerlink" title="五、JWT 双 Token 机制"></a>五、JWT 双 Token 机制</h3><h4 id="5-1-为什么需要两个-Token？"><a href="#5-1-为什么需要两个-Token？" class="headerlink" title="5.1 为什么需要两个 Token？"></a>5.1 为什么需要两个 Token？</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">┌─────────┐                      ┌─────────┐</span><br><span class="line">│  客户端  │                      │  服务端  │</span><br><span class="line">└────┬────┘                      └────┬────┘</span><br><span class="line">     │                                │</span><br><span class="line">     │  POST /login (username + pwd)  │</span><br><span class="line">     │───────────────────────────────→│</span><br><span class="line">     │  &#123;access_token, refresh_token&#125; │</span><br><span class="line">     │←───────────────────────────────│</span><br><span class="line">     │                                │</span><br><span class="line">     │  GET /api/accounts             │</span><br><span class="line">     │  Authorization: Bearer &#123;access&#125;│ ← access_token 30分钟有效</span><br><span class="line">     │───────────────────────────────→│</span><br><span class="line">     │                                │</span><br><span class="line">     │  ... 30分钟后，access 过期 ...  │</span><br><span class="line">     │                                │</span><br><span class="line">     │  POST /api/refresh             │</span><br><span class="line">     │  &#123;refresh_token&#125;               │ ← refresh_token 7天有效</span><br><span class="line">     │───────────────────────────────→│</span><br><span class="line">     │  &#123;新的 access_token&#125;            │</span><br><span class="line">     │←───────────────────────────────│</span><br></pre></td></tr></table></figure>
+
+<h4 id="5-2-双-Token-对比"><a href="#5-2-双-Token-对比" class="headerlink" title="5.2 双 Token 对比"></a>5.2 双 Token 对比</h4><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Access Token</th>
+<th>Refresh Token</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>有效期</strong></td>
+<td>短（30分钟）</td>
+<td>长（7天）</td>
+</tr>
+<tr>
+<td><strong>使用频率</strong></td>
+<td>每次 API 请求都携带</td>
+<td>只在续期时使用</td>
+</tr>
+<tr>
+<td><strong>泄露风险</strong></td>
+<td>高（频繁传输）</td>
+<td>低（很少传输）</td>
+</tr>
+<tr>
+<td><strong>泄露影响</strong></td>
+<td>30 分钟内有效</td>
+<td>7 天内可换新 token，需支持撤销</td>
+</tr>
+<tr>
+<td><strong>存储位置</strong></td>
+<td>客户端内存</td>
+<td>客户端安全存储（httpOnly cookie 等）</td>
+</tr>
+</tbody></table>
+<h4 id="5-3-为什么”泄露影响窗口不同”是核心优势？"><a href="#5-3-为什么”泄露影响窗口不同”是核心优势？" class="headerlink" title="5.3 为什么”泄露影响窗口不同”是核心优势？"></a>5.3 为什么”泄露影响窗口不同”是核心优势？</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">单一长期 Token 方案：</span><br><span class="line">  Token 泄露 → 攻击者可在 7 天内冒充用户 → ❌</span><br><span class="line"></span><br><span class="line">双 Token 方案：</span><br><span class="line">  Access Token 泄露 → 攻击者只能在 30 分钟内冒充用户 → ✅</span><br><span class="line">  Refresh Token 泄露 → 需要额外的 token 撤销机制 → ✅</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="六、令牌类型校验"><a href="#六、令牌类型校验" class="headerlink" title="六、令牌类型校验"></a>六、令牌类型校验</h3><p>在依赖注入中校验令牌类型，防止用 Refresh Token 访问 API：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># app/dependencies.py 中</span></span><br><span class="line"><span class="keyword">if</span> payload.get(<span class="string">&quot;type&quot;</span>) != <span class="string">&quot;access&quot;</span>:</span><br><span class="line">    <span class="keyword">raise</span> HTTPException(status_code=<span class="number">401</span>, detail=<span class="string">&quot;无效的令牌类型&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>token 类型</th>
+<th>允许的操作</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>access</code></td>
+<td>访问所有受保护的 API</td>
+</tr>
+<tr>
+<td><code>refresh</code></td>
+<td><strong>只能</strong>访问 <code>/api/refresh</code> 续期接口</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="七、JWT-与-Session-对比"><a href="#七、JWT-与-Session-对比" class="headerlink" title="七、JWT 与 Session 对比"></a>七、JWT 与 Session 对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>JWT</th>
+<th>服务端 Session</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>状态</strong></td>
+<td>无状态（token 自包含用户信息）</td>
+<td>有状态（服务端存储 session）</td>
+</tr>
+<tr>
+<td><strong>扩展性</strong></td>
+<td>好（无需共享 session 存储）</td>
+<td>需要 Redis 等共享存储</td>
+</tr>
+<tr>
+<td><strong>吊销</strong></td>
+<td>难（需要黑名单机制）</td>
+<td>易（删除 session 即可）</td>
+</tr>
+<tr>
+<td><strong>体积</strong></td>
+<td>较大（每次请求携带完整 token）</td>
+<td>小（只传 session_id）</td>
+</tr>
+<tr>
+<td><strong>适用</strong></td>
+<td>微服务、移动端 API</td>
+<td>传统 Web 应用</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="第二部分：FastAPI-依赖注入与认证中间件"><a href="#第二部分：FastAPI-依赖注入与认证中间件" class="headerlink" title="第二部分：FastAPI 依赖注入与认证中间件"></a>第二部分：FastAPI 依赖注入与认证中间件</h2><h3 id="八、依赖注入"><a href="#八、依赖注入" class="headerlink" title="八、依赖注入"></a>八、依赖注入</h3><p>FastAPI 的 <code>Depends()</code> 是一种<strong>声明式依赖管理</strong>机制：路由函数声明它需要什么，FastAPI 自动注入。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@router.get(<span class="params"><span class="string">&quot;/api/v1/accounts&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">list_accounts</span>(<span class="params"></span></span><br><span class="line"><span class="params">    current_user: User = Depends(<span class="params">get_current_user</span>),  <span class="comment"># ← 需要当前用户</span></span></span><br><span class="line"><span class="params">    db: AsyncSession = Depends(<span class="params">get_db</span>),              <span class="comment"># ← 需要数据库会话</span></span></span><br><span class="line"><span class="params"></span>):</span><br><span class="line">    <span class="comment"># current_user 和 db 已经被注入，可直接使用</span></span><br><span class="line">    ...</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>Depends</code> 就是”自动帮你准备好东西”，你不用自己创建、不用自己管、不用自己传，你只需要声明：我要这个 → 系统自动给你注入。函数式依赖：用 <code>yield</code> 提供资源，<code>finally</code> 保证清理</p>
+</blockquote>
+<hr>
+<h3 id="九、认证流程"><a href="#九、认证流程" class="headerlink" title="九、认证流程"></a>九、认证流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">┌────────────────────────────────────────────────────────────┐</span><br><span class="line">│  HTTP 请求                                                  │</span><br><span class="line">│  Authorization: Bearer eyJhbGciOi...                       │</span><br><span class="line">└────────────────────────┬───────────────────────────────────┘</span><br><span class="line">                         │</span><br><span class="line">                         ▼</span><br><span class="line">┌────────────────────────────────────────────────────────────┐</span><br><span class="line">│  Step 1: HTTPBearer 提取 Token                              │</span><br><span class="line">│  ─────────────────────────────                              │</span><br><span class="line">│  · 从 Authorization 头解析 &quot;Bearer &lt;token&gt;&quot;                 │</span><br><span class="line">│  · auto_error=False → token 不存在时不报错，返回 None       │</span><br><span class="line">└────────────────────────┬───────────────────────────────────┘</span><br><span class="line">                         │</span><br><span class="line">              ┌──────────┴──────────┐</span><br><span class="line">              │ token 存在吗？       │</span><br><span class="line">              └──────────┬──────────┘</span><br><span class="line">                 是 │            │ 否</span><br><span class="line">                    ▼            ▼</span><br><span class="line">              ┌──────────┐  ┌──────────────────┐</span><br><span class="line">              │ 继续      │  │ HTTPException(401)│</span><br><span class="line">              └────┬─────┘  │ &quot;缺少认证令牌&quot;     │</span><br><span class="line">                   │        └──────────────────┘</span><br><span class="line">                   ▼</span><br><span class="line">┌────────────────────────────────────────────────────────────┐</span><br><span class="line">│  Step 2: decode_token() 验证签名 + 过期                     │</span><br><span class="line">│  ───────────────────────────────────                        │</span><br><span class="line">│  · 验证签名（用 JWT_SECRET_KEY）                            │</span><br><span class="line">│  · 检查 exp（是否过期）                                     │</span><br><span class="line">│  · 失败 → HTTPException(401, &quot;无效的认证令牌&quot;)              │</span><br><span class="line">└────────────────────────┬───────────────────────────────────┘</span><br><span class="line">                         │</span><br><span class="line">                         ▼</span><br><span class="line">┌────────────────────────────────────────────────────────────┐</span><br><span class="line">│  Step 3: 校验 Token 类型                                    │</span><br><span class="line">│  ─────────────────────────                                 │</span><br><span class="line">│  · payload.type 必须是 &quot;access&quot;                            │</span><br><span class="line">│  · 防止用 Refresh Token 访问 API                           │</span><br><span class="line">│  · 失败 → HTTPException(401, &quot;无效的令牌类型&quot;)              │</span><br><span class="line">└────────────────────────┬───────────────────────────────────┘</span><br><span class="line">                         │</span><br><span class="line">                         ▼</span><br><span class="line">┌────────────────────────────────────────────────────────────┐</span><br><span class="line">│  Step 4: 从数据库加载用户                                   │</span><br><span class="line">│  ───────────────────────────                                │</span><br><span class="line">│  · payload.sub → user_id                                   │</span><br><span class="line">│  · SELECT * FROM users WHERE id = ?                        │</span><br><span class="line">│  · 检查用户是否存在 + is_active                            │</span><br><span class="line">│  · 失败 → HTTPException(401, &quot;用户不存在或已禁用&quot;)          │</span><br><span class="line">└────────────────────────┬───────────────────────────────────┘</span><br><span class="line">                         │</span><br><span class="line">                         ▼</span><br><span class="line">                  返回 User 对象 → 注入到路由函数</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="十、依赖链（Dependency-Chain）"><a href="#十、依赖链（Dependency-Chain）" class="headerlink" title="十、依赖链（Dependency Chain）"></a>十、依赖链（Dependency Chain）</h3><p>FastAPI 自动解析多层依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">get_current_user</span><br><span class="line">    ├── Depends(security_scheme)     ← HTTPBearer()</span><br><span class="line">    └── Depends(get_db)              ← 异步数据库会话</span><br><span class="line">            └── AsyncSessionLocal()  ← 连接池</span><br></pre></td></tr></table></figure>
+
+<h4 id="依赖解析顺序"><a href="#依赖解析顺序" class="headerlink" title="依赖解析顺序"></a>依赖解析顺序</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">请求到达</span><br><span class="line">  │</span><br><span class="line">  ├── 1. get_db() 开始</span><br><span class="line">  │     └── AsyncSessionLocal() 创建 session</span><br><span class="line">  │</span><br><span class="line">  ├── 2. security_scheme (HTTPBearer)</span><br><span class="line">  │     └── 从 Header 提取 token</span><br><span class="line">  │</span><br><span class="line">  ├── 3. get_current_user() 执行</span><br><span class="line">  │     ├── 接收 credentials (来自 step 2)</span><br><span class="line">  │     ├── 接收 db (来自 step 1)</span><br><span class="line">  │     └── 返回 User 对象</span><br><span class="line">  │</span><br><span class="line">  ├── 4. 路由函数执行</span><br><span class="line">  │     └── 接收 current_user 和 db</span><br><span class="line">  │</span><br><span class="line">  └── 5. get_db() finally 块</span><br><span class="line">        └── commit / rollback / close</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="十一、HTTPBearer-配置"><a href="#十一、HTTPBearer-配置" class="headerlink" title="十一、HTTPBearer 配置"></a>十一、<code>HTTPBearer</code> 配置</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">security_scheme = HTTPBearer(auto_error=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>设置</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>auto_error=True</code>（默认）</td>
+<td>Token 不存在时<strong>自动</strong>抛出 401</td>
+</tr>
+<tr>
+<td><code>auto_error=False</code></td>
+<td>Token 不存在时返回 <code>None</code>，由开发者自行处理</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><code>HTTPBearer()</code> — 自动从 <code>Authorization: Bearer &lt;token&gt;</code> 头提取令牌<br><code>auto_error=False</code> — 令牌缺失时不自动抛401，返回 <code>None</code>（用于可选认证）<br><code>credentials.credentials</code> — 获取令牌字符串</p>
+</blockquote>
+<h4 id="为什么设置-auto-error-False？"><a href="#为什么设置-auto-error-False？" class="headerlink" title="为什么设置 auto_error=False？"></a>为什么设置 <code>auto_error=False</code>？</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># auto_error=False 的好处：可以区分&quot;没传 token&quot;和&quot;token 无效&quot;</span></span><br><span class="line"><span class="keyword">if</span> credentials <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">    <span class="keyword">raise</span> HTTPException(status_code=<span class="number">401</span>, detail=<span class="string">&quot;缺少认证令牌&quot;</span>)</span><br><span class="line"><span class="comment"># 与 decode 失败的 401 信息不同，便于排查问题</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="十二、Depends-的三种使用场景"><a href="#十二、Depends-的三种使用场景" class="headerlink" title="十二、Depends 的三种使用场景"></a>十二、<code>Depends</code> 的三种使用场景</h3><h4 id="12-1-注入依赖"><a href="#12-1-注入依赖" class="headerlink" title="12.1 注入依赖"></a>12.1 注入依赖</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 场景 1: 注入数据库会话</span></span><br><span class="line">db: AsyncSession = Depends(get_db)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 场景 2: 注入当前用户（需要认证的路由）</span></span><br><span class="line">current_user: User = Depends(get_current_user)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 场景 3: 多个依赖组合</span></span><br><span class="line"><span class="keyword">async</span> <span class="keyword">def</span> <span class="title function_">create_account</span>(<span class="params"></span></span><br><span class="line"><span class="params">    account: AccountCreate,                    <span class="comment"># 请求体</span></span></span><br><span class="line"><span class="params">    current_user: User = Depends(<span class="params">get_current_user</span>),  <span class="comment"># 认证</span></span></span><br><span class="line"><span class="params">    db: AsyncSession = Depends(<span class="params">get_db</span>),              <span class="comment"># 数据库</span></span></span><br><span class="line"><span class="params"></span>): ...</span><br></pre></td></tr></table></figure>
+
+<h4 id="12-2-路由级依赖"><a href="#12-2-路由级依赖" class="headerlink" title="12.2 路由级依赖"></a>12.2 路由级依赖</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 整个路由模块都需要认证</span></span><br><span class="line">router = APIRouter(</span><br><span class="line">    prefix=<span class="string">&quot;/api/v1&quot;</span>,</span><br><span class="line">    dependencies=[Depends(get_current_user)],  <span class="comment"># 所有路由自动认证</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h4 id="12-3-全局依赖"><a href="#12-3-全局依赖" class="headerlink" title="12.3 全局依赖"></a>12.3 全局依赖</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 整个应用都需要数据库会话</span></span><br><span class="line">app = FastAPI(dependencies=[Depends(get_db)])</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="十三、依赖注入-vs-手动管理"><a href="#十三、依赖注入-vs-手动管理" class="headerlink" title="十三、依赖注入 vs 手动管理"></a>十三、依赖注入 vs 手动管理</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th><code>Depends()</code> 注入</th>
+<th>手动管理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>代码量</strong></td>
+<td>少（声明即用）</td>
+<td>多（每次手动创建和关闭）</td>
+</tr>
+<tr>
+<td><strong>生命周期</strong></td>
+<td>自动管理（进入&#x2F;退出）</td>
+<td>手动 try&#x2F;finally</td>
+</tr>
+<tr>
+<td><strong>测试</strong></td>
+<td>易（可替换依赖）</td>
+<td>难（硬编码）</td>
+</tr>
+<tr>
+<td><strong>可读性</strong></td>
+<td>好（函数签名即文档）</td>
+<td>差（实现细节淹没业务逻辑）</td>
+</tr>
+<tr>
+<td><strong>复用</strong></td>
+<td>好（一个依赖多处使用）</td>
+<td>差（到处复制粘贴）</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="十四、完整认证流程"><a href="#十四、完整认证流程" class="headerlink" title="十四、完整认证流程"></a>十四、完整认证流程</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">1. 用户注册</span><br><span class="line">   password (明文) ──→ hash_password() ──→ 存入数据库</span><br><span class="line"></span><br><span class="line">2. 用户登录</span><br><span class="line">   输入 password ──→ verify_password() ──→ 匹配成功</span><br><span class="line">                                          ├── create_access_token()</span><br><span class="line">                                          └── create_refresh_token()</span><br><span class="line"></span><br><span class="line">3. API 请求</span><br><span class="line">   Authorization: Bearer &#123;access_token&#125;</span><br><span class="line">     ──→ HTTPBearer 提取 token</span><br><span class="line">       ──→ decode_token() 验签 + 检查过期</span><br><span class="line">         ──→ 从 claims 中取 user_id</span><br><span class="line">           ──→ 查数据库加载 User 对象</span><br><span class="line"></span><br><span class="line">4. Token 续期</span><br><span class="line">   POST /refresh &#123;refresh_token&#125;</span><br><span class="line">     ──→ decode_token() 验签</span><br><span class="line">       ──→ 验证 type == &quot;refresh&quot;</span><br><span class="line">         ──→ 生成新的 access_token</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="十五、核心要点速查"><a href="#十五、核心要点速查" class="headerlink" title="十五、核心要点速查"></a>十五、核心要点速查</h3><table>
+<thead>
+<tr>
+<th>要点</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>密码存储</td>
+<td>bcrypt 哈希，永不明文</td>
+</tr>
+<tr>
+<td>密码验证</td>
+<td><code>pwd_context.verify(plain, hashed)</code></td>
+</tr>
+<tr>
+<td>Token 签发</td>
+<td><code>jwt.encode(claims, secret, algorithm)</code></td>
+</tr>
+<tr>
+<td>Token 验证</td>
+<td><code>jwt.decode(token, secret, algorithms)</code></td>
+</tr>
+<tr>
+<td>双 Token</td>
+<td>Access（30分钟） + Refresh（7天）</td>
+</tr>
+<tr>
+<td>Token 类型隔离</td>
+<td><code>type: &quot;access&quot;</code> vs <code>type: &quot;refresh&quot;</code></td>
+</tr>
+<tr>
+<td>密钥管理</td>
+<td>环境变量注入，不硬编码</td>
+</tr>
+<tr>
+<td>时间标准</td>
+<td>UTC 时间（<code>datetime.now(timezone.utc)</code>）</td>
+</tr>
+<tr>
+<td><code>Depends()</code></td>
+<td>FastAPI 声明式依赖注入</td>
+</tr>
+<tr>
+<td><code>HTTPBearer</code></td>
+<td>从 Authorization 头提取 Bearer Token</td>
+</tr>
+<tr>
+<td><code>auto_error=False</code></td>
+<td>Token 不存在时不自动报错，由自己处理</td>
+</tr>
+<tr>
+<td>依赖链</td>
+<td>FastAPI 自动递归解析多层嵌套依赖</td>
+</tr>
+<tr>
+<td>用户加载</td>
+<td>每次请求从 DB 加载最新用户状态</td>
+</tr>
+<tr>
+<td><code>is_active</code> 检查</td>
+<td>支持软禁用用户（不删除记录）</td>
+</tr>
+<tr>
+<td><code>scalar_one_or_none()</code></td>
+<td>安全查询：不抛异常，返回 None 自行处理</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="配置参数"><a href="#配置参数" class="headerlink" title="配置参数"></a>配置参数</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># JWT 配置</span></span><br><span class="line">JWT_SECRET_KEY: <span class="built_in">str</span> = <span class="string">&quot;change-me-in-production&quot;</span>  <span class="comment"># 签名密钥</span></span><br><span class="line">JWT_ALGORITHM: <span class="built_in">str</span> = <span class="string">&quot;HS256&quot;</span>                     <span class="comment"># 签名算法</span></span><br><span class="line">ACCESS_TOKEN_EXPIRE_MINUTES: <span class="built_in">int</span> = <span class="number">30</span>             <span class="comment"># Access Token 30分钟</span></span><br><span class="line">REFRESH_TOKEN_EXPIRE_DAYS: <span class="built_in">int</span> = <span class="number">7</span>                <span class="comment"># Refresh Token 7天</span></span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>生产环境要求</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>JWT_SECRET_KEY</code></td>
+<td><strong>必须更换</strong>！使用 <code>openssl rand -hex 32</code> 生成</td>
+</tr>
+<tr>
+<td><code>JWT_ALGORITHM</code></td>
+<td>HS256 适合单服务；多服务用 RS256（公钥&#x2F;私钥）</td>
+</tr>
+<tr>
+<td><code>ACCESS_TOKEN_EXPIRE_MINUTES</code></td>
+<td>建议 15~60 分钟</td>
+</tr>
+<tr>
+<td><code>REFRESH_TOKEN_EXPIRE_DAYS</code></td>
+<td>建议 7~30 天</td>
+</tr>
+</tbody></table>
+
+  </div>
+
+  
+    <div class="post-tags">
+      
+        <a href="/tags/FastAPI/" class="tag">#FastAPI</a>
+      
+        <a href="/tags/JWT/" class="tag">#JWT</a>
+      
+        <a href="/tags/bcrypt/" class="tag">#bcrypt</a>
+      
+        <a href="/tags/%E8%AE%A4%E8%AF%81/" class="tag">#认证</a>
+      
+        <a href="/tags/%E5%AE%89%E5%85%A8/" class="tag">#安全</a>
+      
+        <a href="/tags/%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/" class="tag">#依赖注入</a>
+      
+        <a href="/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/" class="tag">#中间件</a>
+      
+    </div>
+  
+</article>
+
+<!-- 返回首页 -->
+<div class="back-home">
+  <a href="/">&laquo; 返回首页</a>
+</div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 valorant</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的博客</title>
+  <link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="site-title">我的博客</a>
+      <nav class="site-nav">
+        <a href="/">首页</a>
+        <a href="/archives">归档</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="container">
+      <article class="post-full">
+  <header class="post-header">
+    <h1 class="post-title">Hexo 自定义主题</h1>
+    <div class="post-meta">
+      <span class="post-date">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M3.5 0a.5.5 0 01.5.5V1h8V.5a.5.5 0 011 0V1h1a2 2 0 012 2v11a2 2 0 01-2 2H2a2 2 0 01-2-2V3a2 2 0 012-2h1V.5a.5.5 0 01.5-.5z"/>
+        </svg>
+        2026-06-05
+      </span>
+      
+        <span class="post-categories">
+          
+            <a href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
+          
+        </span>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <h2 id="一、EJS-模板引擎"><a href="#一、EJS-模板引擎" class="headerlink" title="一、EJS 模板引擎"></a>一、EJS 模板引擎</h2><p>EJS（Embedded JavaScript）是 Hexo 使用的模板引擎，负责将数据动态渲染为 HTML。</p>
+<h3 id="1-1-基础语法"><a href="#1-1-基础语法" class="headerlink" title="1.1 基础语法"></a>1.1 基础语法</h3><table>
+<thead>
+<tr>
+<th>语法</th>
+<th>作用</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;%= var %&gt;</code></td>
+<td>输出变量（转义 HTML，防 XSS）</td>
+<td><code>&lt;%= config.title %&gt;</code></td>
+</tr>
+<tr>
+<td><code>&lt;%- var %&gt;</code></td>
+<td>输出变量（不转义，渲染 HTML）</td>
+<td><code>&lt;%- page.content %&gt;</code></td>
+</tr>
+<tr>
+<td><code>&lt;% code %&gt;</code></td>
+<td>执行 JS 逻辑，不输出</td>
+<td><code>&lt;% if (page.prev) { %&gt;</code></td>
+</tr>
+<tr>
+<td><code>&lt;%# 注释 %&gt;</code></td>
+<td>模板注释，不输出到 HTML</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3 id="1-2-循环与条件"><a href="#1-2-循环与条件" class="headerlink" title="1.2 循环与条件"></a>1.2 循环与条件</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 遍历文章列表 --&gt;</span><br><span class="line">&lt;% page.posts.each(function(post)&#123; %&gt;</span><br><span class="line">  &lt;a href=&quot;&lt;%= url_for(post.path) %&gt;&quot;&gt;&lt;%= post.title %&gt;&lt;/a&gt;</span><br><span class="line">&lt;% &#125;); %&gt;</span><br><span class="line"></span><br><span class="line">&lt;!-- 条件判断 --&gt;</span><br><span class="line">&lt;% if (page.tags &amp;&amp; page.tags.length) &#123; %&gt;</span><br><span class="line">  &lt;div class=&quot;tags&quot;&gt;...&lt;/div&gt;</span><br><span class="line">&lt;% &#125; %&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-Hexo-内置模板-API"><a href="#1-3-Hexo-内置模板-API" class="headerlink" title="1.3 Hexo 内置模板 API"></a>1.3 Hexo 内置模板 API</h3><table>
+<thead>
+<tr>
+<th>方法&#x2F;变量</th>
+<th>说明</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>config.title</code></td>
+<td>站点标题</td>
+<td>导航栏、<code>&lt;title&gt;</code></td>
+</tr>
+<tr>
+<td><code>config.author</code></td>
+<td>站点作者</td>
+<td>页脚版权</td>
+</tr>
+<tr>
+<td><code>url_for(path)</code></td>
+<td>生成站点内绝对路径</td>
+<td>所有链接和资源引用</td>
+</tr>
+<tr>
+<td><code>date(obj, format)</code></td>
+<td>格式化日期</td>
+<td>文章发布日期</td>
+</tr>
+<tr>
+<td><code>page.posts</code></td>
+<td>当前页文章列表</td>
+<td>首页遍历</td>
+</tr>
+<tr>
+<td><code>page.content</code></td>
+<td>文章 HTML 正文</td>
+<td>文章详情页</td>
+</tr>
+<tr>
+<td><code>page.title</code></td>
+<td>文章标题</td>
+<td>详情页标题</td>
+</tr>
+<tr>
+<td><code>page.tags</code></td>
+<td>文章标签集合</td>
+<td>标签展示</td>
+</tr>
+<tr>
+<td><code>page.categories</code></td>
+<td>文章分类集合</td>
+<td>分类展示</td>
+</tr>
+<tr>
+<td><code>page.prev</code> &#x2F; <code>page.next</code></td>
+<td>上&#x2F;下分页对象</td>
+<td>分页导航</td>
+</tr>
+<tr>
+<td><code>page.total</code></td>
+<td>总页数</td>
+<td>分页显示 “1&#x2F;5”</td>
+</tr>
+<tr>
+<td><code>page.current</code></td>
+<td>当前页码</td>
+<td>分页显示</td>
+</tr>
+<tr>
+<td><code>post.path</code></td>
+<td>文章访问路径</td>
+<td>文章链接</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="二、CSS-自定义属性（CSS-Variables）"><a href="#二、CSS-自定义属性（CSS-Variables）" class="headerlink" title="二、CSS 自定义属性（CSS Variables）"></a>二、CSS 自定义属性（CSS Variables）</h2><p><strong>核心价值</strong>：一处定义，全局复用，方便换肤。</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-pseudo">:root</span> &#123;</span><br><span class="line">  <span class="attr">--bg</span>: <span class="number">#0d1117</span>;           <span class="comment">/* 主背景 */</span></span><br><span class="line">  <span class="attr">--card-bg</span>: <span class="number">#161b22</span>;      <span class="comment">/* 卡片背景 */</span></span><br><span class="line">  <span class="attr">--primary</span>: <span class="number">#58a6ff</span>;      <span class="comment">/* 主色调（蓝） */</span></span><br><span class="line">  <span class="attr">--text</span>: <span class="number">#c9d1d9</span>;         <span class="comment">/* 正文颜色 */</span></span><br><span class="line">  <span class="attr">--text-secondary</span>: <span class="number">#8b949e</span>; <span class="comment">/* 次要文字 */</span></span><br><span class="line">  <span class="attr">--border</span>: <span class="number">#30363d</span>;       <span class="comment">/* 边框色 */</span></span><br><span class="line">  <span class="attr">--hover</span>: <span class="number">#1f6feb</span>;        <span class="comment">/* 悬停色 */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">body</span> &#123;</span><br><span class="line">  <span class="attribute">background</span>: <span class="built_in">var</span>(--bg);</span><br><span class="line">  <span class="attribute">color</span>: <span class="built_in">var</span>(--text);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>知识点</strong>：</p>
+<ul>
+<li><code>:root</code> 选择器优先级高于 <code>html</code>，是定义全局变量的标准位置</li>
+<li>变量名区分大小写，通常用 <code>--</code> 前缀（CSS 规范）</li>
+<li>可以通过 JS <code>setProperty(&#39;--bg&#39;, &#39;#fff&#39;)</code> 运行时换肤</li>
+</ul>
+<hr>
+<h2 id="三、Flexbox-弹性布局"><a href="#三、Flexbox-弹性布局" class="headerlink" title="三、Flexbox 弹性布局"></a>三、Flexbox 弹性布局</h2><p>本主题大量使用 Flexbox，是页面布局的核心技术。</p>
+<h3 id="3-1-两端对齐（导航栏）"><a href="#3-1-两端对齐（导航栏）" class="headerlink" title="3.1 两端对齐（导航栏）"></a>3.1 两端对齐（导航栏）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.site-header</span> <span class="selector-class">.container</span> &#123;</span><br><span class="line">  <span class="attribute">display</span>: flex;</span><br><span class="line">  <span class="attribute">justify-content</span>: space-between;  <span class="comment">/* 左右两端 */</span></span><br><span class="line">  <span class="attribute">align-items</span>: center;             <span class="comment">/* 垂直居中 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-横向排列（文章列表行）"><a href="#3-2-横向排列（文章列表行）" class="headerlink" title="3.2 横向排列（文章列表行）"></a>3.2 横向排列（文章列表行）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.post-item</span> &#123;</span><br><span class="line">  <span class="attribute">display</span>: flex;</span><br><span class="line">  <span class="attribute">align-items</span>: center;   <span class="comment">/* 日期与标题垂直居中在同一行 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-换行布局（标签云）"><a href="#3-3-换行布局（标签云）" class="headerlink" title="3.3 换行布局（标签云）"></a>3.3 换行布局（标签云）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.post-tags</span> &#123;</span><br><span class="line">  <span class="attribute">display</span>: flex;</span><br><span class="line">  <span class="attribute">flex-wrap</span>: wrap;       <span class="comment">/* 超出宽度自动折行 */</span></span><br><span class="line">  <span class="attribute">gap</span>: <span class="number">8px</span>;              <span class="comment">/* 标签之间统一间距 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Flexbox-核心属性速查"><a href="#Flexbox-核心属性速查" class="headerlink" title="Flexbox 核心属性速查"></a>Flexbox 核心属性速查</h3><table>
+<thead>
+<tr>
+<th>属性</th>
+<th>作用</th>
+<th>常用值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>display: flex</code></td>
+<td>开启弹性容器</td>
+<td>flex</td>
+</tr>
+<tr>
+<td><code>justify-content</code></td>
+<td><strong>主轴</strong>对齐（水平）</td>
+<td>center &#x2F; space-between &#x2F; flex-start</td>
+</tr>
+<tr>
+<td><code>align-items</code></td>
+<td><strong>交叉轴</strong>对齐（垂直）</td>
+<td>center &#x2F; flex-start &#x2F; stretch</td>
+</tr>
+<tr>
+<td><code>flex-direction</code></td>
+<td>主轴方向</td>
+<td>row（默认）&#x2F; column</td>
+</tr>
+<tr>
+<td><code>flex-wrap</code></td>
+<td>是否换行</td>
+<td>nowrap &#x2F; wrap</td>
+</tr>
+<tr>
+<td><code>gap</code></td>
+<td>子元素间距</td>
+<td>8px, 16px, 1rem</td>
+</tr>
+<tr>
+<td><code>flex-shrink</code></td>
+<td>是否允许收缩</td>
+<td>0（不允许）&#x2F; 1（允许）</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、CSS-定位（Position）"><a href="#四、CSS-定位（Position）" class="headerlink" title="四、CSS 定位（Position）"></a>四、CSS 定位（Position）</h2><h3 id="4-1-Sticky-粘性定位（导航栏）"><a href="#4-1-Sticky-粘性定位（导航栏）" class="headerlink" title="4.1 Sticky 粘性定位（导航栏）"></a>4.1 Sticky 粘性定位（导航栏）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.site-header</span> &#123;</span><br><span class="line">  <span class="attribute">position</span>: sticky;</span><br><span class="line">  <span class="attribute">top</span>: <span class="number">0</span>;</span><br><span class="line">  <span class="attribute">z-index</span>: <span class="number">100</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键理解</strong>：<code>sticky</code> 在元素滚动到 <code>top: 0</code> 时”粘”在视口顶部，不脱离文档流。与 <code>fixed</code> 的区别：</p>
+<table>
+<thead>
+<tr>
+<th>值</th>
+<th>参照物</th>
+<th align="center">脱离文档流？</th>
+<th align="center">占位？</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>static</code></td>
+<td>默认</td>
+<td align="center">—</td>
+<td align="center">—</td>
+</tr>
+<tr>
+<td><code>relative</code></td>
+<td>自身原位置</td>
+<td align="center">否</td>
+<td align="center">保留</td>
+</tr>
+<tr>
+<td><code>absolute</code></td>
+<td>最近定位祖先</td>
+<td align="center"><strong>是</strong></td>
+<td align="center">不占</td>
+</tr>
+<tr>
+<td><code>fixed</code></td>
+<td>视口</td>
+<td align="center"><strong>是</strong></td>
+<td align="center">不占</td>
+</tr>
+<tr>
+<td><code>sticky</code></td>
+<td>滚动容器</td>
+<td align="center"><strong>否</strong></td>
+<td align="center">保留</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>固定导航栏为什么不推荐用 <code>fixed</code>？因为 <code>fixed</code> 脱离文档流后，下方内容会”跳”上去，需要用 <code>padding-top</code> 或 <code>margin-top</code> 手动补偿，而 <code>sticky</code> 自动保留占位。</p>
+</blockquote>
+<hr>
+<h2 id="五、CSS-过渡动画（Transition）"><a href="#五、CSS-过渡动画（Transition）" class="headerlink" title="五、CSS 过渡动画（Transition）"></a>五、CSS 过渡动画（Transition）</h2><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">a</span> &#123;</span><br><span class="line">  <span class="attribute">color</span>: <span class="built_in">var</span>(--primary);</span><br><span class="line">  <span class="attribute">transition</span>: color <span class="number">0.2s</span>;     <span class="comment">/* 颜色变化 0.2 秒平滑过渡 */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-tag">a</span><span class="selector-pseudo">:hover</span> &#123;</span><br><span class="line">  <span class="attribute">color</span>: <span class="built_in">var</span>(--hover);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>语法</strong>：<code>transition: 属性 时长 缓动函数 延迟;</code></p>
+<table>
+<thead>
+<tr>
+<th>缓动函数</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ease</code></td>
+<td>默认，慢 → 快 → 慢</td>
+</tr>
+<tr>
+<td><code>ease-in-out</code></td>
+<td>慢 → 快 → 慢（更平滑）</td>
+</tr>
+<tr>
+<td><code>linear</code></td>
+<td>匀速</td>
+</tr>
+<tr>
+<td><code>ease-in</code></td>
+<td>慢 → 快</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>注意</strong>：<code>transition</code> 写在<strong>元素默认状态</strong>上，而不是 <code>:hover</code> 上，这样鼠标进入和离开都有过渡效果。</p>
+</blockquote>
+<hr>
+<h2 id="六、CSS-伪类（Pseudo-classes）"><a href="#六、CSS-伪类（Pseudo-classes）" class="headerlink" title="六、CSS 伪类（Pseudo-classes）"></a>六、CSS 伪类（Pseudo-classes）</h2><table>
+<thead>
+<tr>
+<th>伪类</th>
+<th>含义</th>
+<th>本主题用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>:hover</code></td>
+<td>鼠标悬停</td>
+<td>链接变色、列表行高亮</td>
+</tr>
+<tr>
+<td><code>:last-child</code></td>
+<td>父元素最后一个子元素</td>
+<td>去掉列表最后一项边框</td>
+</tr>
+<tr>
+<td><code>:first-child</code></td>
+<td>父元素第一个子元素</td>
+<td>选中第一项特殊处理</td>
+</tr>
+</tbody></table>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 最后一行不显示分割线，避免重复边框 */</span></span><br><span class="line"><span class="selector-class">.post-item</span><span class="selector-pseudo">:last-child</span> &#123;</span><br><span class="line">  <span class="attribute">border-bottom</span>: none;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 悬停时浅蓝色高亮 */</span></span><br><span class="line"><span class="selector-class">.post-item</span><span class="selector-pseudo">:hover</span> &#123;</span><br><span class="line">  <span class="attribute">background</span>: <span class="built_in">rgba</span>(<span class="number">88</span>, <span class="number">166</span>, <span class="number">255</span>, <span class="number">0.05</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、文本溢出省略（Text-Overflow）"><a href="#七、文本溢出省略（Text-Overflow）" class="headerlink" title="七、文本溢出省略（Text Overflow）"></a>七、文本溢出省略（Text Overflow）</h2><p>实现”标题太长时显示 <code>...</code>“的经典三板斧：</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.post-title-link</span> &#123;</span><br><span class="line">  <span class="attribute">white-space</span>: nowrap;        <span class="comment">/* ① 强制不换行 */</span></span><br><span class="line">  <span class="attribute">overflow</span>: hidden;           <span class="comment">/* ② 超出部分隐藏 */</span></span><br><span class="line">  <span class="attribute">text-overflow</span>: ellipsis;    <span class="comment">/* ③ 超出部分显示省略号 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>三个属性缺一不可</strong>。如果想多行省略（如 3 行），需要改用 <code>-webkit-line-clamp</code>。</p>
+</blockquote>
+<hr>
+<h2 id="八、响应式设计（Media-Queries）"><a href="#八、响应式设计（Media-Queries）" class="headerlink" title="八、响应式设计（Media Queries）"></a>八、响应式设计（Media Queries）</h2><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 屏幕宽度 ≤ 640px 时生效 */</span></span><br><span class="line"><span class="keyword">@media</span> (<span class="attribute">max-width</span>: <span class="number">640px</span>) &#123;</span><br><span class="line">  <span class="selector-class">.post-item</span> &#123;</span><br><span class="line">    <span class="attribute">flex-direction</span>: column;    <span class="comment">/* 日期和标题上下排列 */</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="selector-class">.post-full</span> &#123;</span><br><span class="line">    <span class="attribute">padding</span>: <span class="number">24px</span> <span class="number">20px</span>;        <span class="comment">/* 减小内边距，利用更多宽度 */</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="selector-class">.post-title</span> &#123;</span><br><span class="line">    <span class="attribute">font-size</span>: <span class="number">1.5rem</span>;         <span class="comment">/* 缩小标题，避免换行过多 */</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>常见断点参考</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>断点</th>
+<th>适配设备</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>480px</code></td>
+<td>小屏手机</td>
+</tr>
+<tr>
+<td><code>640px</code></td>
+<td>大屏手机 &#x2F; 小平板</td>
+</tr>
+<tr>
+<td><code>768px</code></td>
+<td>平板竖屏</td>
+</tr>
+<tr>
+<td><code>1024px</code></td>
+<td>平板横屏 &#x2F; 小笔记本</td>
+</tr>
+<tr>
+<td><code>1280px+</code></td>
+<td>桌面端</td>
+</tr>
+</tbody></table>
+<p><strong>移动优先</strong>策略：默认样式写移动端，<code>@media (min-width: xxx)</code> 逐步增强桌面端体验。</p>
+<hr>
+<h2 id="九、字体与排版"><a href="#九、字体与排版" class="headerlink" title="九、字体与排版"></a>九、字体与排版</h2><h3 id="9-1-系统字体栈（无需网络加载）"><a href="#9-1-系统字体栈（无需网络加载）" class="headerlink" title="9.1 系统字体栈（无需网络加载）"></a>9.1 系统字体栈（无需网络加载）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">body</span> &#123;</span><br><span class="line">  <span class="attribute">font-family</span>:</span><br><span class="line">    -apple-system, BlinkMacSystemFont,  <span class="comment">/* macOS / iOS */</span></span><br><span class="line">    <span class="string">&quot;Segoe UI&quot;</span>,                          <span class="comment">/* Windows */</span></span><br><span class="line">    <span class="string">&quot;PingFang SC&quot;</span>, <span class="string">&quot;Microsoft YaHei&quot;</span>,   <span class="comment">/* 中文 */</span></span><br><span class="line">    sans-serif;                          <span class="comment">/* 兜底 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>原则</strong>：优先使用操作系统自带字体，零网络请求，渲染最快。</p>
+<h3 id="9-2-等宽字体（代码）"><a href="#9-2-等宽字体（代码）" class="headerlink" title="9.2 等宽字体（代码）"></a>9.2 等宽字体（代码）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">code</span> &#123;</span><br><span class="line">  <span class="attribute">font-family</span>: <span class="string">&quot;SF Mono&quot;</span>, <span class="string">&quot;Fira Code&quot;</span>, monospace;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-行高与可读性"><a href="#9-3-行高与可读性" class="headerlink" title="9.3 行高与可读性"></a>9.3 行高与可读性</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">body</span> &#123;</span><br><span class="line">  <span class="attribute">line-height</span>: <span class="number">1.6</span>;    <span class="comment">/* 正文黄金区间 1.5 ~ 1.8 */</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="selector-class">.post-content</span> &#123;</span><br><span class="line">  <span class="attribute">line-height</span>: <span class="number">1.8</span>;    <span class="comment">/* 长文阅读建议 1.7 ~ 2.0 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>行高用无单位数值（如 <code>1.6</code>），会根据 <code>font-size</code> 自动计算，比固定 <code>px</code> 更灵活。</p>
+</blockquote>
+<hr>
+<h2 id="十、暗色主题设计要点"><a href="#十、暗色主题设计要点" class="headerlink" title="十、暗色主题设计要点"></a>十、暗色主题设计要点</h2><h3 id="10-1-不用纯黑背景"><a href="#10-1-不用纯黑背景" class="headerlink" title="10.1 不用纯黑背景"></a>10.1 不用纯黑背景</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* ❌ 避免 */</span></span><br><span class="line"><span class="selector-tag">body</span> &#123; <span class="attribute">background</span>: <span class="number">#000</span>; &#125;</span><br><span class="line"><span class="comment">/* ✅ 推荐：深灰护眼 */</span></span><br><span class="line"><span class="selector-tag">body</span> &#123; <span class="attribute">background</span>: <span class="number">#0d1117</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>纯黑（<code>#000</code>）对比度太强，长时间阅读导致视觉疲劳。深灰（如 <code>#0d1117</code> &#x3D; GitHub Dark 背景）更舒适。</p>
+<h3 id="10-2-文字层次"><a href="#10-2-文字层次" class="headerlink" title="10.2 文字层次"></a>10.2 文字层次</h3><table>
+<thead>
+<tr>
+<th>用途</th>
+<th>颜色</th>
+<th align="center">对比度</th>
+<th>视觉效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标题</td>
+<td><code>#ffffff</code> &#x2F; <code>#c9d1d9</code></td>
+<td align="center">高</td>
+<td>醒目</td>
+</tr>
+<tr>
+<td>正文</td>
+<td><code>#c9d1d9</code></td>
+<td align="center">约 12:1</td>
+<td>清晰不刺眼</td>
+</tr>
+<tr>
+<td>次要文字</td>
+<td><code>#8b949e</code></td>
+<td align="center">约 6:1</td>
+<td>辅助信息</td>
+</tr>
+<tr>
+<td>禁用&#x2F;提示</td>
+<td><code>#484f58</code></td>
+<td align="center">低</td>
+<td>不打扰</td>
+</tr>
+</tbody></table>
+<h3 id="10-3-暗色下的蓝色"><a href="#10-3-暗色下的蓝色" class="headerlink" title="10.3 暗色下的蓝色"></a>10.3 暗色下的蓝色</h3><p>在暗色背景下，蓝色系（<code>#58a6ff</code>、<code>#79c0ff</code>）视觉温暖、识别度高，是链接和强调色的最佳选择。<strong>避免</strong>使用高饱和度纯蓝（<code>#0000ff</code>），暗背景下会很刺眼。</p>
+<hr>
+<h2 id="十一、其他-CSS-知识"><a href="#十一、其他-CSS-知识" class="headerlink" title="十一、其他 CSS 知识"></a>十一、其他 CSS 知识</h2><h3 id="11-1-Box-Sizing"><a href="#11-1-Box-Sizing" class="headerlink" title="11.1 Box Sizing"></a>11.1 Box Sizing</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">* &#123;</span><br><span class="line">  <span class="attribute">box-sizing</span>: border-box;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将 <code>padding</code> 和 <code>border</code> 计入元素总宽高，避免 <code>width: 100%</code> + <code>padding</code> 导致溢出。现代前端开发的标准操作。</p>
+<h3 id="11-2-Backdrop-Filter（毛玻璃）"><a href="#11-2-Backdrop-Filter（毛玻璃）" class="headerlink" title="11.2 Backdrop Filter（毛玻璃）"></a>11.2 Backdrop Filter（毛玻璃）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.site-header</span> &#123;</span><br><span class="line">  <span class="attribute">backdrop-filter</span>: <span class="built_in">blur</span>(<span class="number">10px</span>);  <span class="comment">/* 背景高斯模糊 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实现导航栏对下方内容的毛玻璃效果，增强层次感。需要浏览器支持。</p>
+<h3 id="11-3-SVG-内联图标"><a href="#11-3-SVG-内联图标" class="headerlink" title="11.3 SVG 内联图标"></a>11.3 SVG 内联图标</h3><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">svg</span> <span class="attr">width</span>=<span class="string">&quot;16&quot;</span> <span class="attr">height</span>=<span class="string">&quot;16&quot;</span> <span class="attr">viewBox</span>=<span class="string">&quot;0 0 16 16&quot;</span> <span class="attr">fill</span>=<span class="string">&quot;currentColor&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">path</span> <span class="attr">d</span>=<span class="string">&quot;M3.5 0a.5.5 0 01.5.5V1h8V.5a.5.5 0 011 0V1h1...&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">svg</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong><code>fill=&quot;currentColor&quot;</code></strong> 是关键——让 SVG 颜色继承父元素的 <code>color</code>，不需要单独指定颜色，跟随文字颜色自动适配。</p>
+<h3 id="11-4-溢出滚动（代码块）"><a href="#11-4-溢出滚动（代码块）" class="headerlink" title="11.4 溢出滚动（代码块）"></a>11.4 溢出滚动（代码块）</h3><figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.post-content</span> pre &#123;</span><br><span class="line">  <span class="attribute">overflow-x</span>: auto;   <span class="comment">/* 代码太长出现水平滚动条，不破坏布局 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="十二、知识体系总图"><a href="#十二、知识体系总图" class="headerlink" title="十二、知识体系总图"></a>十二、知识体系总图</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">Hexo 自定义主题</span><br><span class="line">│</span><br><span class="line">├── 模板层（EJS）</span><br><span class="line">│   ├── 变量输出 &lt;%= %&gt; vs &lt;%- %&gt;</span><br><span class="line">│   ├── 流程控制（循环、条件）</span><br><span class="line">│   └── Hexo 模板 API（url_for, date, page.*）</span><br><span class="line">│</span><br><span class="line">├── 布局层（CSS）</span><br><span class="line">│   ├── Flexbox（导航栏、列表行、标签流式排列）</span><br><span class="line">│   ├── Position（sticky 导航固定）</span><br><span class="line">│   └── 响应式 Media Queries（移动端适配）</span><br><span class="line">│</span><br><span class="line">├── 样式层（CSS）</span><br><span class="line">│   ├── 自定义属性（主题色统一管理）</span><br><span class="line">│   ├── 过渡动画（hover 交互反馈）</span><br><span class="line">│   ├── 伪类（:hover, :last-child）</span><br><span class="line">│   ├── 文本溢出省略（单行 ...）</span><br><span class="line">│   └── 字体排版（系统字体栈、行高比例）</span><br><span class="line">│</span><br><span class="line">├── 暗色设计（Design）</span><br><span class="line">│   ├── 配色方案（深蓝黑调 #0d1117）</span><br><span class="line">│   ├── 文字层次（对比度区分主次）</span><br><span class="line">│   └── 蓝色强调（#58a6ff 暖蓝在暗色下舒适）</span><br><span class="line">│</span><br><span class="line">└── 其他技巧</span><br><span class="line">    ├── box-sizing: border-box（盒模型标准化）</span><br><span class="line">    ├── backdrop-filter（毛玻璃效果）</span><br><span class="line">    ├── SVG currentColor（图标颜色跟随文字）</span><br><span class="line">    └── overflow-x: auto（代码块滚动）</span><br></pre></td></tr></table></figure>
+
+  </div>
+
+  
+    <div class="post-tags">
+      
+        <a href="/tags/Hexo/" class="tag">#Hexo</a>
+      
+        <a href="/tags/%E5%89%8D%E7%AB%AF/" class="tag">#前端</a>
+      
+        <a href="/tags/EJS/" class="tag">#EJS</a>
+      
+        <a href="/tags/%E4%B8%BB%E9%A2%98/" class="tag">#主题</a>
+      
+    </div>
+  
+</article>
+
+<!-- 返回首页 -->
+<div class="back-home">
+  <a href="/">&laquo; 返回首页</a>
+</div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 valorant</p>
+    </div>
+  </footer>
+</body>
+</html>
